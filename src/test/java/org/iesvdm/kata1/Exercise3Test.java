@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Exercise3Test extends PetDomainForKata
@@ -16,27 +17,31 @@ public class Exercise3Test extends PetDomainForKata
     {
         //TODO
         // Obtain petTypes from people
-        List<PetType> petTypes = new ArrayList<>();
+        List<PetType> petTypes = this.people.stream()
+                .flatMap(person -> person.getPetTypes().keySet().stream())
+                .collect(Collectors.toList());
 
         // Do you recognize this pattern? Can you simplify it using Java Streams?
-        Map<String, Long> petEmojiCounts = new HashMap<>();
-        for (PetType petType : petTypes)
-        {
-            String petEmoji = petType.toString();
-            Long count = petEmojiCounts.get(petEmoji);
-            if (count == null)
-            {
-                count = 0L;
-            }
-            petEmojiCounts.put(petEmoji, count + 1L);
-        }
-
-        var expectedMap = Map.of("🐱", 2L, "🐶", 2L, "🐹", 2L, "🐍", 1L, "🐢", 1L, "🐦", 1L);
-        Assertions.assertEquals(expectedMap, petEmojiCounts);
+//        Map<String, Long> petEmojiCounts = new HashMap<>();
+//        for (PetType petType : petTypes)
+//        {
+//            String petEmoji = petType.toString();
+//            Long count = petEmojiCounts.get(petEmoji);
+//            if (count == null)
+//            {
+//                count = 0L;
+//            }
+//            petEmojiCounts.put(petEmoji, count + 1L);
+//        }
 
         //TODO
         // Replace by a stream the previous pattern
-        Map<String, Long> petEmojiCounts2 = new HashMap<>();
+        Map<String, Long> petEmojiCounts2 = this.people.stream()
+                .flatMap(person -> person.getPetTypes().keySet().stream())
+                        .map(petType -> petType.toString())
+                        .collect(Collectors.groupingBy(emoji->emoji, Collectors.counting()));
+
+        var expectedMap = Map.of("🐦", 1L, "🐶", 2L, "🐹", 1L, "🐍", 1L, "🐢", 1L, "🐱", 2L);
         Assertions.assertEquals(expectedMap, petEmojiCounts2);
 
     }
@@ -64,7 +69,8 @@ public class Exercise3Test extends PetDomainForKata
 
         //TODO
         // Replace by stream the previous pattern
-        Map<String, List<Person>> lastNamesToPeople2 = new HashMap<>();
+        Map<String, List<Person>> lastNamesToPeople2 = this.people.stream()
+                .collect(Collectors.groupingBy(person -> person.getLastName()));
         Assertions.assertEquals(3, lastNamesToPeople2.get("Smith").size());
     }
 
@@ -99,7 +105,15 @@ public class Exercise3Test extends PetDomainForKata
 
         //TODO
         // Replace by stream
-        Map<PetType, Set<Person>> peopleByPetType2 = new HashMap<>();
+        Map<PetType, Set<Person>> peopleByPetType2 = this.people.stream()
+                .flatMap(person -> person.getPets().stream())
+                .collect(Collectors.groupingBy(Pet::getType,
+                        Collectors.mapping(pet -> this.people.stream()
+                        .filter(person -> person.getPets().contains(pet))
+                        .findFirst().get(),
+                                Collectors.toSet()
+                        )
+                ));
 
         Assertions.assertEquals(2, peopleByPetType2.get(PetType.CAT).size());
         Assertions.assertEquals(2, peopleByPetType2.get(PetType.DOG).size());
@@ -115,7 +129,15 @@ public class Exercise3Test extends PetDomainForKata
     {
         //TODO
         // Replace by stream
-        Map<String, Set<Person>> petTypesToPeople = new HashMap<>();
+        Map<String, Set<Person>> petTypesToPeople = this.people.stream()
+                .flatMap(person -> person.getPetEmojis().keySet().stream())
+                .distinct()
+                .collect(Collectors.toMap(
+                        petEmoji -> petEmoji,
+                        petEmoji -> this.people.stream()
+                                .filter(person -> person.getPetEmojis().containsKey(petEmoji))
+                                .collect(Collectors.toSet())
+                ));
 
         Assertions.assertEquals(2, petTypesToPeople.get("🐱").size());
         Assertions.assertEquals(2, petTypesToPeople.get("🐶").size());

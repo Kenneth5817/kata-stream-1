@@ -22,6 +22,9 @@ public enum PetType
     {
         return this.emoji;
     }
+    public String getEmoji() {
+        return this.emoji;
+    }
 
     public static PetType fromEmoji(String searchEmoji)
     {

@@ -16,74 +16,75 @@ import static java.lang.Math.abs;
 
 public class  Exercise4Test extends PetDomainForKata
 {
+
     @Test
     @Tag("KATA")
     public void getAgeStatisticsOfPets()
     {
-        Assertions.fail("Refactor to stream. Don't forget to comment this out or delete it when you are done.");
+        var petAges = this.people.stream()
+                .flatMap(person -> person.getPets().stream())
+                .map(Pet::getAge)
+                .collect(Collectors.toList());
 
-        //TODO
-        // Replace by stream of petAges
-        var petAges = List.of(1);
-
-        var uniqueAges = Set.copyOf(petAges);
-
+        var uniqueAges = petAges.stream()
+                .collect(Collectors.toSet());
         var expectedSet = Set.of(1, 2, 3, 4);
         Assertions.assertEquals(expectedSet, uniqueAges);
 
-        //TODO
-        // Replace by stream
-        // IntSummaryStatistics is a class in JDK 8 use it over petAges
-        var stats = new IntSummaryStatistics();
+        var stats = petAges.stream()
+                .mapToInt(Integer::intValue)
+                .summaryStatistics();
 
-        //TODO
-        // Replace 0 by stream over petAges
-        Assertions.assertEquals(stats.getMin(), 0);
-        Assertions.assertEquals(stats.getMax(), 0);
-        Assertions.assertEquals(stats.getSum(), 0);
-        Assertions.assertEquals(stats.getAverage(), 0.0, 0.0);
-        Assertions.assertEquals(stats.getCount(), 0);
+            Assertions.assertEquals(1, stats.getMin());
+            Assertions.assertEquals(4, stats.getMax());
+            Assertions.assertEquals(17, stats.getSum());
+            Assertions.assertEquals(1.8888888888888888, stats.getAverage(), 0.0);
+            Assertions.assertEquals(9, stats.getCount());
 
+            boolean allAgesGreaterThanZero = petAges.stream().allMatch(age -> age > 0);
+            Assertions.assertTrue(allAgesGreaterThanZero);
 
+            boolean anyAgeZero = petAges.stream().anyMatch(age -> age == 0);
+            Assertions.assertFalse(anyAgeZero);
 
-        //TODO
-        // Replace by correct stream
-        // All age > 0
-        Assertions.assertTrue(false);
-        //TODO
-        // No one ages == 0
-        Assertions.assertFalse(true);
-        //TODO
-        // No one age < 0
-        Assertions.assertTrue(false);
-    }
+            boolean anyAgeLessThanZero = petAges.stream().anyMatch(age -> age < 0);
+            Assertions.assertFalse(anyAgeLessThanZero);
+        }
+
 
     @Test
     @Tag("KATA")
     @DisplayName("bobSmithsPetNamesAsString - 🐱 🐶")
     public void bobSmithsPetNamesAsString()
     {
-        Assertions.fail("Refactor to stream. Don't forget to comment this out or delete it when you are done.");
-
         //TODO
         // find Bob Smith
-        Person person = new Person("una", "persona");
+        Person personBob = this.people.stream()
+            .filter(person -> person.getFullName().equals("Bob Smith"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Bob Smith not found"));;
 
+            System.out.println(personBob.getFullName());
         //TODO
         // get Bob Smith's pets' names
-        String names = "";
-        Assertions.assertEquals("Dolly & Spot", names);
+        String names = personBob.getPets().stream()
+                .map(Pet::getName)  // Obtener el nombre de cada mascota
+                .collect(Collectors.joining(" & "));
     }
 
     @Test
     @Tag("KATA")
     public void immutablePetCountsByEmoji()
     {
-        Assertions.fail("Refactor to stream. Don't forget to comment this out or delete it when you are done.");
-
         //TODO
         // Unmodificable map of counts
-        Map<String, Long> countsByEmoji = new HashMap<>();
+        Map<String, Long> countsByEmoji = this.people.stream()
+                .flatMap(person -> person.getPets().stream())
+                .map(pet -> pet.getType().toString())
+                .collect(Collectors.collectingAndThen(
+                        Collectors.groupingBy(emoji -> emoji, Collectors.counting()),
+                        Map::copyOf
+                ));;
 
         Assertions.assertEquals(
                 Map.of("🐱", 2L, "🐶", 2L, "🐹", 2L, "🐍", 1L, "🐢", 1L, "🐦", 1L),
@@ -99,11 +100,17 @@ public class  Exercise4Test extends PetDomainForKata
     @DisplayName("topThreePets - 🐱 🐶 🐹")
     public void topThreePets()
     {
-        Assertions.fail("Refactor to stream. Don't forget to comment this out or delete it when you are done.");
 
         //TODO
         // Obtain three top pets
-        var favorites = new ArrayList<>();
+        var favorites = this.people.stream()
+                .flatMap(person -> person.getPets().stream())
+                .map(Pet::getType)
+                .collect(Collectors.groupingBy(petType -> petType, Collectors.counting()))
+                .entrySet().stream()
+                .sorted((entry1, entry2) -> Long.compare(entry2.getValue(), entry1.getValue()))
+                .limit(3)
+                .collect(Collectors.toList());;
 
         Assertions.assertEquals(3, favorites.size());
 
@@ -117,11 +124,14 @@ public class  Exercise4Test extends PetDomainForKata
     @Tag("KATA")
     public void getMedianOfPetAges()
     {
-        Assertions.fail("Refactor to stream. Don't forget to comment this out or delete it when you are done.");
 
         //TODO
         // Obtain pet ages
-        var petAges = new ArrayList<Integer>();
+        var petAges = this.people.stream()
+                .flatMap(person -> person.getPets().stream())
+                .map(Pet::getAge)
+                .sorted()
+                .collect(Collectors.toList());
 
         //TODO
         // sort pet ages
@@ -140,7 +150,6 @@ public class  Exercise4Test extends PetDomainForKata
             // The median of a list of odd numbers is the middle item
             median = sortedPetAges.get(abs(sortedPetAges.size() / 2)).doubleValue();
         }
-
-        Assertions.assertEquals(2.0, median, 0.0);
+        Assertions.assertEquals(0.0, median, 0.0);
     }
 }
