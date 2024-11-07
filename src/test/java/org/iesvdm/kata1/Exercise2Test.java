@@ -44,11 +44,10 @@ public class Exercise2Test extends PetDomainForKata
     @Test
     @Tag("KATA")
     @DisplayName("howManyPeopleHaveCats 🐱?")
-    public void howManyPeopleHaveCats()
-    {
+    public void howManyPeopleHaveCats() {
         //TODO
         // replace with a method call send to this.people that checks how many people have cats
-        var count = this.people.stream()
+        var count = (int) this.people.stream()
                         .filter(person -> person.getPets().stream().anyMatch(pet -> pet.getType()==PetType.CAT))
                         .count();
         Assertions.assertEquals(2, count);
@@ -56,8 +55,7 @@ public class Exercise2Test extends PetDomainForKata
 
     @Test
     @Tag("KATA")
-    public void findMarySmith()
-    {
+    public void findMarySmith() {
         //TODO
         // replace with a stream on people to obtain Mary Smith
         Person result = this.people.stream()
